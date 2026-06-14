@@ -7,69 +7,69 @@
 ## Pages
 
 ### בית
-https://example.com
+https://ofir-masika-studio-242.zappy5.app
 אמנות צילום מינימליסטית שמביאה שקט, עומק ויופי לכל חלל. צילום אמנותי לבית שנוצר מתוך פילוסופיית וואבי-סאבי — גלו את הקולקציה.
 
 ### לגלריה
-https://example.com/Gallery
+https://ofir-masika-studio-242.zappy5.app/Gallery
 עיינו בקולקציות הצילום האמנותי של אופיר מסיקה — עיצוב קירות עם תמונות אמנות שמעוררות רגש, שקט ונוכחות עמוקה בכל סביבת מגורים או עבודה.
 
 ### התאמה אישית
-https://example.com/custom-space-fit
+https://ofir-masika-studio-242.zappy5.app/custom-space-fit
 שירות התאמת אמנות לחלל האישי שלכם — מקליניקות ובתי קפה ועד בתים פרטיים. יצירה מותאמת אישית שמשלימה את הסביבה ומדברת ישירות אל הנפש.
 
 ### אודות
-https://example.com/about
+https://ofir-masika-studio-242.zappy5.app/about
 היכירו את אופיר מסיקה — צלם אמנות ישראלי שיוצר מתוך שקט, כוונה ויופי של חוסר השלמות. גלו את הפילוסופיה שמאחורי כל יצירה ואת הדרך שהובילה לכאן.
 
 ### צור קשר
-https://example.com/contact
+https://ofir-masika-studio-242.zappy5.app/contact
 רוצים לשלב צילום אמנותי לבית, למשרד או לעסק שלכם? צרו קשר עם אופיר מסיקה לייעוץ אישי, שאלות על קולקציות או התאמה מיוחדת לחלל שלכם.
 
 ### Products
-https://example.com/products
+https://ofir-masika-studio-242.zappy5.app/products
 המוצרים שלנו - אופיר מסיקה - סטודיו 242
 
 ### Cart
-https://example.com/cart
+https://ofir-masika-studio-242.zappy5.app/cart
 עגלת הקניות שלך
 
 ### Checkout
-https://example.com/checkout
+https://ofir-masika-studio-242.zappy5.app/checkout
 תשלום
 
 ### Login
-https://example.com/login
+https://ofir-masika-studio-242.zappy5.app/login
 התחברות לקוחות
 
 ### Account
-https://example.com/account
+https://ofir-masika-studio-242.zappy5.app/account
 החשבון שלי
 
 ### Order Success
-https://example.com/order-success
+https://ofir-masika-studio-242.zappy5.app/order-success
 תודה על ההזמנה
 
 ### Product Detail
-https://example.com/product/:slug
+https://ofir-masika-studio-242.zappy5.app/product/:slug
 פרטי המוצר - אופיר מסיקה - סטודיו 242
 
 ### Category
-https://example.com/category/:slug
+https://ofir-masika-studio-242.zappy5.app/category/:slug
 מוצרים - אופיר מסיקה - סטודיו 242
 
 ## Legal & Policy
 
 ### Privacy Policy
-https://example.com/privacy
+https://ofir-masika-studio-242.zappy5.app/privacy
 Information about how user data is collected, stored, and protected.
 
 ### Terms & Conditions
-https://example.com/terms
+https://ofir-masika-studio-242.zappy5.app/terms
 Legal terms describing service usage, rights, and policies.
 
 ### Accessibility Statement
-https://example.com/accessibility
+https://ofir-masika-studio-242.zappy5.app/accessibility
 Information about WCAG compliance and accessibility features.
 
 ---
@@ -79,12 +79,12 @@ Information about WCAG compliance and accessibility features.
 **Total active products: 1**
 
 ### "שקט לבן" – סט 3 יצירות קנבס Fine Art
-https://example.com/product/shkt-lbn-st-3-ytsyrvt-knbs-fine-art-megk29
+https://ofir-masika-studio-242.zappy5.app/product/shkt-lbn-st-3-ytsyrvt-knbs-fine-art-megk29
 - Price: 1250.00 ILS
 - Availability: In stock
 - Category: שקט לבן
 - Description: הכניסו רוגע, מרחב ונשימה אל חלל המגורים עם סט "שקט לבן" – קומפוזיצייה מעודנת ומדויקת.
-- Image: https://example.com/assets/product-1781443308510-4b38gs.webp
+- Image: https://ofir-masika-studio-242.zappy5.app/assets/product-1781443308510-4b38gs.webp
 
 ---
 
@@ -103,8 +103,8 @@ A minimalist, emotionally-driven art and photography brand rooted in the philoso
 
 # Machine-readable feeds
 
-- Sitemap (XML): https://example.com/sitemap.xml
-- Robots: https://example.com/robots.txt
-- Flattened page text (for LLMs): https://example.com/llms-full.txt
-- Products (JSON): https://example.com/products.json
-- Products (Google Merchant RSS): https://example.com/product-feed.xml
+- Sitemap (XML): https://ofir-masika-studio-242.zappy5.app/sitemap.xml
+- Robots: https://ofir-masika-studio-242.zappy5.app/robots.txt
+- Flattened page text (for LLMs): https://ofir-masika-studio-242.zappy5.app/llms-full.txt
+- Products (JSON): https://ofir-masika-studio-242.zappy5.app/products.json
+- Products (Google Merchant RSS): https://ofir-masika-studio-242.zappy5.app/product-feed.xml

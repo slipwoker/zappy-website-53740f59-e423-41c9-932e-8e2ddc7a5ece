@@ -1,7 +1,7 @@
 {
   "@context": "https://schema.org",
-  "generated_at": "2026-06-14T13:25:10.578Z",
-  "base_url": "https://example.com",
+  "generated_at": "2026-06-14T13:25:36.437Z",
+  "base_url": "https://ofir-masika-studio-242.zappy5.app",
   "currency": "ILS",
   "count": 1,
   "products": [
@@ -19,12 +19,12 @@
       "sale_price": null,
       "currency": "ILS",
       "images": [
-        "https://example.com/assets/product-1781443308510-4b38gs.webp",
-        "https://example.com/assets/product-1780567693571-g8pxlg.webp"
+        "https://ofir-masika-studio-242.zappy5.app/assets/product-1781443308510-4b38gs.webp",
+        "https://ofir-masika-studio-242.zappy5.app/assets/product-1780567693571-g8pxlg.webp"
       ],
       "in_stock": true,
       "stock_status": "in_stock",
-      "url": "https://example.com/product/shkt-lbn-st-3-ytsyrvt-knbs-fine-art-megk29",
+      "url": "https://ofir-masika-studio-242.zappy5.app/product/shkt-lbn-st-3-ytsyrvt-knbs-fine-art-megk29",
       "categories": [
         "שקט לבן"
       ],
