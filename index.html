@@ -112,6 +112,37 @@
   var visitorId = getVisitorId();
   var sessionId = getSessionId();
   
+  // Site Optimization Agent — visual heatmap helpers
+  function getBandAnchor(el) {
+    var node = el;
+    while (node && node !== document.body) {
+      if (node.getAttribute && node.getAttribute('data-band-index') != null) {
+        return { bandIndex: node.getAttribute('data-band-index'), sectionId: node.id || null };
+      }
+      node = node.parentElement;
+    }
+    node = el;
+    while (node && node !== document.body) {
+      if (node.tagName === 'SECTION' && node.id) {
+        return { bandIndex: null, sectionId: node.id };
+      }
+      node = node.parentElement;
+    }
+    return { bandIndex: null, sectionId: null };
+  }
+  function heatmapFields(el, e) {
+    var anchor = getBandAnchor(el);
+    return {
+      x: Math.round((e && e.pageX) || 0),
+      y: Math.round((e && e.pageY) || 0),
+      bandIndex: anchor.bandIndex,
+      sectionId: anchor.sectionId
+    };
+  }
+  function mergeFields(base, extra) {
+    for (var k in extra) { if (Object.prototype.hasOwnProperty.call(extra, k)) base[k] = extra[k]; }
+    return base;
+  }
   // Track an event
   function trackEvent(eventType, data) {
     data = data || {};
@@ -161,26 +192,61 @@
       // Track button clicks (counted as actions)
       if (target.tagName === 'BUTTON' || target.closest('button')) {
         var button = target.tagName === 'BUTTON' ? target : target.closest('button');
-        trackEvent('click', {
+        var clickMeta = {
           element: 'button',
           text: button.textContent.trim().substring(0, 100),
           id: button.id || null,
           class: button.className || null
-        });
+        };
+        mergeFields(clickMeta, heatmapFields(button, e));
+        trackEvent('click', clickMeta);
       }
       
       // Track link clicks (navigation - not counted as actions)
       else if (target.tagName === 'A' || target.closest('a')) {
         var link = target.tagName === 'A' ? target : target.closest('a');
-        trackEvent('navigation', {
+        var navMeta = {
           element: 'link',
           text: link.textContent.trim().substring(0, 100),
           href: link.href,
           external: link.hostname !== window.location.hostname
-        });
+        };
+        mergeFields(navMeta, heatmapFields(link, e));
+        trackEvent('navigation', navMeta);
       }
     }, true);
   }
+  
+  // Track scroll depth milestones (visual heatmap reach signal)
+  (function() {
+    var milestones = [25, 50, 75, 100];
+    var fired = {};
+    var maxDepth = 0;
+    function computeDepth() {
+      var doc = document.documentElement;
+      var scrollable = (doc.scrollHeight - window.innerHeight);
+      if (scrollable <= 0) return 100;
+      return Math.min(100, Math.round(((window.scrollY || window.pageYOffset || 0) / scrollable) * 100));
+    }
+    var ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(function() {
+        var depth = computeDepth();
+        if (depth > maxDepth) maxDepth = depth;
+        for (var i = 0; i < milestones.length; i++) {
+          var m = milestones[i];
+          if (depth >= m && !fired[m]) {
+            fired[m] = true;
+            trackEvent('scroll_depth', { milestone: m, maxDepthPct: maxDepth });
+          }
+        }
+        ticking = false;
+      });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+  })();
   
   // Track form submissions
   if (config.trackFormSubmissions) {
@@ -223,6 +289,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="צילום אמנותי לבית שמרגיש — אופיר מסיקה">
     <meta name="twitter:description" content="אמנות צילום מינימליסטית שמביאה שקט, עומק ויופי לכל חלל. צילום אמנותי לבית שנוצר מתוך פילוסופיית וואבי-סאבי — גלו את הקולקציה.">
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"LocalBusiness","@id":"https://ofir-masika-studio-242.zappy5.app#organization","name":"אופיר מסיקה - סטודיו 242","url":"https://ofir-masika-studio-242.zappy5.app","description":"A minimalist, emotionally-driven art and photography brand rooted in the philosophy of Wabi-Sabi — finding beauty in imperfection, stillness, and simplicity. The artist creates photography-based artworks designed to integrate harmoniously into living and working spaces, evoking feeling rather than serving as mere decoration. The brand exudes a quiet, slow, non-commercial presence — like a serene gallery experience — and bridges the worlds of fine art, interior design, and emotional well-being. The visual identity is built around large, powerful images, generous white space, and an atmosphere of calm intentionality.","address":{"@type":"PostalAddress","streetAddress":"קיבוץ כפר הנשיא ד.נ. גליל עליון"},"contactPoint":[{"@type":"ContactPoint","contactType":"customer service","email":"ofirmsika@gmail.com","telephone":"052-5859828"}]},{"@type":"WebSite","@id":"https://ofir-masika-studio-242.zappy5.app#website","url":"https://ofir-masika-studio-242.zappy5.app","name":"אופיר מסיקה - סטודיו 242","publisher":{"@id":"https://ofir-masika-studio-242.zappy5.app#organization"}}]}</script>
     <meta property="og:type" content="website">
   <meta property="og:locale" content="he_IL">
   
@@ -391,7 +458,7 @@
       <div class="search-results" id="mobile-search-results"></div>
     </div>
   
-<script>window.ZAPPY_WEBSITE_ID = "53740f59-e423-41c9-932e-8e2ddc7a5ece";window.ZAPPY_API_BASE = "https://qaapi.zappy5.com";</script>
+<script>window.ZAPPY_WEBSITE_ID = "53740f59-e423-41c9-932e-8e2ddc7a5ece";window.ZAPPY_API_BASE = (window.location.pathname.includes('/preview') ? "https://api.zappy5.com" : "https://api.zappy5.com");</script>
   <nav class="navbar" dir="rtl">
   <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
     <svg class="hamburger-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -441,13 +508,13 @@
     
   
     
-  <li><a href="/custom-space-fit">התאמה אישית</a></li><li><a href="/about">אודות</a></li><li><a href="/contact">צור קשר</a></li></ul><div class="nav-ecommerce-icons nav-icons-left"><a href="/login" class="login-link nav-login" title="התחברות"><svg class="login-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a><a href="#cart" class="cart-link nav-cart" id="cart-drawer-toggle" title="עגלת קניות"><svg class="cart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span class="cart-count">0</span></a><div class="nav-search-box">
+  <li><a href="/custom-space-fit">התאמה אישית</a></li><li><a href="/about">אודות</a></li><li><a href="/contact">צור קשר</a></li></ul><div class="nav-ecommerce-icons nav-icons-left"><a href="/login" class="login-link nav-login" title="התחברות"><svg class="login-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></a><a href="#cart" class="cart-link nav-cart" id="cart-drawer-toggle" title="עגלת קניות"><svg class="cart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span class="cart-count">0</span></a><div class="nav-search-box">
     <input type="text" class="nav-search-input" id="nav-search-input" placeholder="חיפוש מוצרים..." autocomplete="off">
     <button class="nav-search-btn" id="nav-search-btn" title="חיפוש">
-      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
     </button>
     <div class="nav-search-results" id="nav-search-results"></div>
-  </div></div><div class="nav-ecommerce-icons nav-icons-right"><button class="nav-search-toggle" id="mobile-search-toggle" title="חיפוש"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></button></div></div>
+  </div></div><div class="nav-ecommerce-icons nav-icons-right"><button class="nav-search-toggle" id="mobile-search-toggle" title="חיפוש"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg></button></div></div>
 
     
 
@@ -894,7 +961,7 @@
 </script>
   
   <main>
-    <section class="index-hero-section" data-layout-spec="בית-hero" dir="rtl" data-hero-type="fullscreen-scrim" id="index-hero-section" style="position: relative; overflow: hidden; background-repeat: no-repeat; --zappy-bg-overlay: rgba(30, 22, 15, 0.41); --zappy-bg-image: url(&quot;assets/business-general-hero-upload-1780479331264.webp&quot;); background-image: url(&quot;assets/business-general-hero-upload-1780828922798-txp3mc.webp?v=1780828925212&quot;) !important; background-size: cover !important; background-position: 54% 69% !important; " data-zappy-bg-type="image" data-zappy-bg-color="" data-zappy-bg-image="assets/business-general-hero-upload-1780479331264.webp" data-zappy-bg-overlay-color="#1e160f" data-zappy-bg-overlay-opacity="41" data-zappy-bg-video-type="" data-zappy-bg-video-url="" data-element-id="zappy-hero-bg-index-hero-section" data-element-type="background-image" data-zappy-bg-position="54% 69%" data-zappy-bg-zoom="1">
+    <section class="index-hero-section" data-layout-spec="בית-hero" dir="rtl" data-hero-type="fullscreen-scrim" id="index-hero-section" style="position: relative; overflow: hidden; background-repeat: no-repeat; --zappy-bg-overlay: rgba(30, 22, 15, 0.41); --zappy-bg-image: url(&quot;assets/business-general-hero-upload-1780479331264.webp&quot;); background-image: url(&quot;assets/business-general-hero-upload-1780828922798-txp3mc.webp?v=1780828925212&quot;) !important; background-size: cover !important; background-position: 54% 69% !important; cursor: url(&quot;data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 50 50' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M29.2344 9.93125L4.87351 34.2922C4.67351 34.4922 4.52976 34.7437 4.46101 35.0203L1.60789 46.4984C1.47664 47.0312 1.63289 47.5922 2.02039 47.9797C2.40945 48.3688 2.97351 48.5219 3.50164 48.3922L14.9798 45.5406C15.2548 45.4719 15.5063 45.3297 15.7079 45.1281L40.0688 20.7672L29.2344 9.93125Z' fill='%23FF0083'/%3E%3Cpath d='M46.1937 3.80781C43.2062 0.820311 38.3468 0.820311 35.3578 3.80781L31.4421 7.72344L42.2781 18.5594L46.1937 14.6437C49.1812 11.6547 49.1812 6.79531 46.1937 3.80781Z' fill='%23FF0083'/%3E%3C/svg%3E&quot;) 2 13, pointer !important;" data-zappy-bg-type="image" data-zappy-bg-color="" data-zappy-bg-image="assets/business-general-hero-upload-1780479331264.webp" data-zappy-bg-overlay-color="#1e160f" data-zappy-bg-overlay-opacity="41" data-zappy-bg-video-type="" data-zappy-bg-video-url="" data-element-id="zappy-hero-bg-index-hero-section" data-element-type="background-image" data-zappy-bg-position="54% 69%" data-zappy-bg-zoom="1">
   <!-- Background Image -->
   <div class="index-hero-bg" style="display: none" data-zappy-original-bg="hidden">
     <img data-hero-bg="true" data-placeholder="index-hero-image-1" data-context="A serene, cinematic interior scene featuring a warm living room or intimate professional space with a large photographic artwork hung on a textured plaster wall. Natural daylight streams in softly from the side, casting gentle shadows. The color palette is warm neutrals — cream, linen, sand, and espresso. The space feels curated, unhurried, and deeply livable. Wabi-sabi aesthetic: imperfect textures, quiet beauty, no clutter. The large artwork on the wall is abstract or nature-based photography in muted tones. Shot from a slight angle to show depth and spatial harmony." width="1400" height="900" src="/assets/business-general-hero-upload-1780828922798-txp3mc.webp?v=1780828925212" alt="חלל פנים שקט עם יצירת אמנות צילומית גדולה על קיר מרקמי בתאורה טבעית חמה" data-hero-background="true" data-element-type="image" data-element-id="img-1780479063049-g1o5lls7l" style="object-fit: cover; object-position: 50% 50%; width: 100%; height: 100%;">
@@ -907,13 +974,13 @@
   <div class="index-hero-content-wrapper">
     <div class="index-hero-card">
       <!-- Eyebrow Label -->
-      <p ><span class="index-hero-eyebrow" style="color: rgb(47, 41, 36) !important;">שדרוג חללים באמצעות טבע אומנות וחומר</span>
+      <p style=""><span class="index-hero-eyebrow" style="color: rgb(47, 41, 36) !important;">שדרוג חללים באמצעות טבע אומנות וחומר</span>
 
       
       </p><!-- H1 -->
 
       <!-- Subtitle -->
-      <h3 class="index-hero-subtitle" ></h3><h1 >פינות טבע מעוצבות&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; לבית ולעסק</h1><p>צילום אמנותי, עץ טבעי וחומרים נבחרים המשתלבים יחד ליצירת פינות חיים בעלות נוכחות שקטה ונעימה.</p>
+      <h3 class="index-hero-subtitle" style=""></h3><h1 style="">פינות טבע מעוצבות&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;לבית ולעסק.</h1><p>צילום אמנותי, עץ טבעי וחומרים נבחרים המשתלבים יחד ליצירת פינות חיים בעלות נוכחות שקטה ונעימה.</p>
 
       <!-- CTA Buttons -->
       <div class="index-hero-ctas">
@@ -965,7 +1032,7 @@
 
     <!-- Intro Block -->
     <div class="index-showcase-intro">
-      <h3 >גלריה של פינות מעוצבות</h3>
+      <h3 style="">גלריה של פינות מעוצבות</h3>
       <p class="index-showcase-subtext" style="color: rgb(47, 41, 36) !important;">&nbsp;שפה ויזואלית שלמה בפני עצמה. לא פרטים בודדים, אלא עולמות שמתחברים, סיפור שמזמין להתבונן, להרגיש, להישאר.</p>
     </div>
 
@@ -993,9 +1060,9 @@
             <div data-zappy-zoom-wrapper="true" data-element-id="img-1780479063049-2yg32ce3s" data-element-type="image" data-zappy-zoom-wrapper-width="576px" data-zappy-zoom-wrapper-height="432px" data-zappy-zoom-wrapper-width-mode="px" data-zappy-zoom-wrapper-align="center" style="position: relative !important; overflow: hidden !important; width: 576px !important; max-width: 100% !important; margin-left: auto !important; margin-right: auto !important; height: 432px !important; display: block !important; padding-bottom: 0px !important;" data-zappy-zoom-clip="true" data-zappy-wrapper-margins-applied="true" data-zappy-card-slot-fill="1"><img data-placeholder="index-showcase-image-2" data-context="Fine art photography series: intimate architectural fragments — a corner of a room with soft shadow, a window frame with diffused morning light, empty domestic space with emotional presence. Wabi-Sabi aesthetic, warm cream and linen tones, quiet and contemplative mood, suitable as large-scale wall art for homes and clinics" width="600" height="400" src="/assets/site-index-showcase-image-2-1780479604314-q6is0v.webp?v=1780479607040" alt="סדרת אור — צילום אמנותי של אור בחללים אינטימיים" data-element-type="image" data-element-id="img-1780479063049-2yg32ce3s" style="object-position: 50% 50% !important; display: block !important; object-fit: cover !important; margin: 0px !important; left: 0px !important; top: 0px !important; width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: none !important; position: absolute !important;" data-zappy-zoom="1.02" data-zappy-original-width="576" data-zappy-original-height="432" data-zappy-object-position="50% 50%"></div>
           </div>
           <div class="index-showcase-card-body">
-            <h3 class="index-showcase-card-title" >פינות טבע לקליניקה וחלל אירוח</h3>
+            <h3 class="index-showcase-card-title" style="">פינות טבע לקליניקה וחלל אירוח</h3>
             <p class="index-showcase-card-desc" style="color: rgb(47, 41, 36) !important;">ערכות עיצוב מוכנות המשלבות צילום אמנותי, עץ טבעי ופריטי עיצוב נבחרים ליצירת אווירה נעימה ומזמינה.</p>
-            <p ><a href="/Gallery" class="index-showcase-link" style="color: rgb(47, 41, 36) !important;">לגלרי</a>ת הפינות</p></div>
+            <p style=""><a href="/Gallery" class="index-showcase-link" style="color: rgb(47, 41, 36) !important;">לגלרי</a>ת הפינות</p></div>
         </article>
 
       </div>
@@ -1010,8 +1077,8 @@
           </div>
           <div class="index-showcase-card-body">
             
-            <h2 >קירות מדברים- קיר עוגן עם מספר עבודות בהרכב מעוצב</h2>
-            <p ><a href="/Gallery" class="index-showcase-link" style="color: rgb(47, 41, 36) !important; outline: none;" data-native-element="true" data-element-id="btn-1780829600970-05oyuhy1b" data-element-type="button">לכל הסטים</a>
+            <h2 style="">קירות מדברים- קיר עוגן עם מספר עבודות בהרכב מעוצב</h2>
+            <p style="cursor: text;"><a href="/Gallery" class="index-showcase-link" style="color: rgb(47, 41, 36) !important; outline: none;" data-native-element="true" data-element-id="btn-1780829600970-05oyuhy1b" data-element-type="button">לכל הסטים</a>
           </p></div>
         </article>
 
@@ -1021,9 +1088,9 @@
             <div data-zappy-zoom-wrapper="true" data-element-id="img-1780479063049-2yg32ce3s-dup-1780829447717-4rhn0a" data-element-type="image" data-zappy-zoom-wrapper-width="576px" data-zappy-zoom-wrapper-height="432px" data-zappy-zoom-wrapper-width-mode="px" data-zappy-zoom-wrapper-align="center" style="position: relative !important; overflow: hidden !important; width: 576px !important; max-width: 100% !important; margin-left: auto !important; margin-right: auto !important; height: 432px !important; display: block !important; padding-bottom: 0px !important;" data-zappy-zoom-clip="true" data-zappy-wrapper-margins-applied="true" data-zappy-card-slot-fill="1"><img data-placeholder="index-showcase-image-2" data-context="Fine art photography series: intimate architectural fragments — a corner of a room with soft shadow, a window frame with diffused morning light, empty domestic space with emotional presence. Wabi-Sabi aesthetic, warm cream and linen tones, quiet and contemplative mood, suitable as large-scale wall art for homes and clinics" width="600" height="400" src="/assets/site-index-showcase-image-2-1780830187696-4djccm.webp?v=1780830189792" alt="סדרת אור — צילום אמנותי של אור בחללים אינטימיים" data-element-type="image" data-element-id="img-1780479063049-2yg32ce3s-dup-1780829447717-4rhn0a" style="display: block !important; object-fit: cover !important; cursor: pointer; object-position: 50% 50% !important; margin: 0px !important; left: 0px !important; top: 0px !important; width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: none !important; position: absolute !important;" data-zappy-zoom="1.02" data-zappy-original-width="576" data-zappy-original-height="432" data-zappy-object-position="50% 50%"></div>
           </div>
           <div class="index-showcase-card-body">
-            <h3 class="index-showcase-card-title" >פינות טבע לבית</h3>
-            <p class="index-showcase-card-desc" style="color: rgb(47, 41, 36) !important; ">ערכות עיצוב מוכנות המשלבות צילום אמנותי, עץ טבעי ופריטי עיצוב נבחרים ליצירת אווירה נעימה ומזמינה.</p>
-            <p ><a href="/Gallery" class="index-showcase-link" style="color: rgb(47, 41, 36) !important;">לגלרי</a>ת הפינות</p></div>
+            <h3 class="index-showcase-card-title" style="cursor: text;">פינות טבע לבית</h3>
+            <p class="index-showcase-card-desc" style="color: rgb(47, 41, 36) !important; cursor: text;">ערכות עיצוב מוכנות המשלבות צילום אמנותי, עץ טבעי ופריטי עיצוב נבחרים ליצירת אווירה נעימה ומזמינה.</p>
+            <p style="cursor: text;"><a href="/Gallery" class="index-showcase-link" style="color: rgb(47, 41, 36) !important;">לגלרי</a>ת הפינות</p></div>
         </article>
 
       </div>
@@ -1050,29 +1117,29 @@
     <!-- Content Column (START = RIGHT in RTL) -->
     <div class="index-services-content">
       <p><small class="index-services-eyebrow">שירות מותאם אישית</small>
-      </p><h2 class="index-services-heading" >התאמת אישית לחלל שלך</h2>
-      <p class="index-services-intro" >כל חלל מספר סיפור אחר.<br>בין אם מדובר בבית פרטי, קליניקה, משרד, יחידת אירוח או סטודיו — אנו מסייעים ליצור חלל בעל אופי, נוכחות והרמוניה באמצעות שילוב מדויק של אמנות, חומרים טבעיים, תאורה ופריטי עיצוב.<br>המטרה אינה רק לבחור פריטים יפים, אלא ליצור מקום שנעים להיות בו.</p>
+      </p><h2 class="index-services-heading" style="">התאמת אישית לחלל שלך</h2>
+      <p class="index-services-intro" style="">כל חלל מספר סיפור אחר.<br>בין אם מדובר בבית פרטי, קליניקה, משרד, יחידת אירוח או סטודיו — אנו מסייעים ליצור חלל בעל אופי, נוכחות והרמוניה באמצעות שילוב מדויק של אמנות, חומרים טבעיים, תאורה ופריטי עיצוב.<br>המטרה אינה רק לבחור פריטים יפים, אלא ליצור מקום שנעים להיות בו.</p>
 
       <ol class="index-services-steps">
         <li class="index-services-step zappy-grid-item-nested-grid zappy-preserve-css-grid" data-grid-item-index="0" data-zappy-grid-align="start" data-original-gap="20px" style="align-items: stretch !important; display: grid;">
           <div class="index-services-step-number" data-grid-item-index="0">01</div>
           <div class="index-services-step-body" data-grid-item-index="1">
-            <h3 class="index-services-step-title" >שיחת היכרות&nbsp;</h3>
-            <p class="index-services-step-text" >נתחיל בשיחה קצרה על החלל, השימוש בו והאווירה שתרצו ליצור. נשמח לקבל תמונות, סרטון קצר או תכנית בסיסית כדי להבין את הפוטנציאל ואת הצרכים.</p>
+            <h3 class="index-services-step-title" style="">שיחת היכרות&nbsp;</h3>
+            <p class="index-services-step-text" style="">נתחיל בשיחה קצרה על החלל, השימוש בו והאווירה שתרצו ליצור. נשמח לקבל תמונות, סרטון קצר או תכנית בסיסית כדי להבין את הפוטנציאל ואת הצרכים.</p>
           </div>
         </li>
         <li class="index-services-step zappy-grid-item-nested-grid zappy-preserve-css-grid" data-grid-item-index="1" data-zappy-grid-align="start" data-original-gap="20px" style=" align-items: stretch !important;">
           <div class="index-services-step-number" data-grid-item-index="0">02</div>
           <div class="index-services-step-body" data-grid-item-index="1">
-            <h3 class="index-services-step-title" >בניית קונספט ועיצוב</h3>
-            <p class="index-services-step-text" >ניצור עבורכם כיוון עיצובי המשלב אמנות, צבע, חומר, תאורה ופריטים משלימים מתוך עולם התוכן של סטודיו 242.<br>במידת הצורך נכין גם הדמיה ויזואלית שתמחיש את התוצאה הצפויה.</p>
+            <h3 class="index-services-step-title" style="">בניית קונספט ועיצוב</h3>
+            <p class="index-services-step-text" style="">ניצור עבורכם כיוון עיצובי המשלב אמנות, צבע, חומר, תאורה ופריטים משלימים מתוך עולם התוכן של סטודיו 242.<br>במידת הצורך נכין גם הדמיה ויזואלית שתמחיש את התוצאה הצפויה.</p>
           </div>
         </li>
         <li class="index-services-step zappy-grid-item-nested-grid zappy-preserve-css-grid" data-grid-item-index="2" data-zappy-grid-align="start" data-original-gap="20px" style=" align-items: stretch !important;">
-          <div class="index-services-step-number" data-grid-item-index="0" >03</div>
+          <div class="index-services-step-number" data-grid-item-index="0" style="">03</div>
           <div class="index-services-step-body" data-grid-item-index="1">
-            <h3 class="index-services-step-title" >ליווי, אספקה והעמדה</h3>
-            <p class="index-services-step-text" >לאחר אישור הקונספט נדאג לבחירת היצירות והפריטים, לאספקה, למיקום בחלל ולהעמדה הסופית.<br>בפרויקטים מסוימים ניתן לשלב גם צביעת קירות, התקנת מדפים, תליית יצירות ויצירת פינות מעוצבות מוכנות.</p>
+            <h3 class="index-services-step-title" style="">ליווי, אספקה והעמדה</h3>
+            <p class="index-services-step-text" style="">לאחר אישור הקונספט נדאג לבחירת היצירות והפריטים, לאספקה, למיקום בחלל ולהעמדה הסופית.<br>בפרויקטים מסוימים ניתן לשלב גם צביעת קירות, התקנת מדפים, תליית יצירות ויצירת פינות מעוצבות מוכנות.</p>
           </div>
         </li>
       </ol>
@@ -1087,7 +1154,7 @@
           <div data-zappy-zoom-wrapper="true" data-element-id="img-1780479063049-ju1xix5ej" data-element-type="image" data-zappy-zoom-wrapper-width="531px" data-zappy-zoom-wrapper-height="707px" data-zappy-zoom-wrapper-width-mode="px" data-zappy-zoom-wrapper-align="center" style="position: relative !important; overflow: hidden !important; width: 531px !important; max-width: 100% !important; margin-left: auto !important; margin-right: auto !important; height: 707px !important; display: block !important; padding-bottom: 0px !important;" data-zappy-zoom-clip="true" data-zappy-wrapper-margins-applied="true" data-zappy-card-slot-fill="1"><img data-placeholder="index-services-image-1" data-context="A calm, beautifully lit interior space — a serene clinic or intimate café — featuring a large framed fine art photography print hanging on a warm white wall. The artwork depicts a quiet, misty landscape with wabi-sabi aesthetic. The room has soft natural light, minimal furniture, and a peaceful atmosphere. The photograph feels like it belongs in the space, not just decoration." width="600" height="780" src="/assets/site-index-services-image-1-1780480566997-aoinhk.webp?v=1780480569498" alt="עבודת צילום אמנותית משולבת בחלל פנים שקט ומינימליסטי" data-element-type="image" data-element-id="img-1780479063049-ju1xix5ej" style="display: block !important; object-position: 50% 50% !important; object-fit: cover !important; margin: 0px !important; left: 0px !important; top: 0px !important; width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: none !important; position: absolute !important;" data-zappy-zoom="1" data-zappy-original-width="531.03515625" data-zappy-original-height="707.3828125" data-zappy-object-position="50% 50%"></div>
         </div>
       </div>
-      <p class="index-services-image-caption" >עיצוב פינת המתנה — קליניקה פרטית, תל אביב</p>
+      <p class="index-services-image-caption" style="">עיצוב פינת המתנה — קליניקה פרטית, תל אביב</p>
     </div>
   </div>
 
@@ -1114,9 +1181,9 @@
       <!-- START side: supporting paragraph text + image -->
       <div class="index-philosophy-start">
         <div class="index-philosophy-text-block">
-          <p >אנחנו מאמינים שחלל אינו מורכב רק מקירות, רהיטים וחפצים.<br>הוא מורכב מתחושה.<br>מהאור שנכנס בבוקר, מהחומרים שסופגים את הזמן, מהפריטים שבחרנו להשאיר ומהשקט שנוצר ביניהם.<br>סטודיו 242 נולד מתוך אהבה לטבע, לאמנות ולחללים שיש בהם נוכחות רגועה. מתוך ההבנה שלעיתים די בפריט אחד נכון, בתמונה אחת או בחומר אחד אותנטי כדי לשנות את האופן שבו מקום מרגיש.</p>
-          <p >אנו אוספים ויוצרים פריטים שנבחרו בקפידה — אמנות צילום מקורית, חפצי עיצוב, קרמיקה, תאורה ואלמנטים טבעיים — כולם חלק מאותה שפה חזותית.<br>אנחנו לא מחפשים למלא חללים.<br>אנחנו מחפשים לחשוף את מה שכבר קיים בהם.<br>ליצור איזון בין טבע לאדריכלות, בין חומר לאור, בין אסתטיקה לחיים עצמם.<br>כל יצירה, כל אובייקט וכל פרויקט נבחרים מתוך אותה מחשבה:<br>ליצור מקומות שנעים לחיות בהם, לעבוד בהם ולהרגיש בהם בבית.</p>
-          <p >העקרונות שלנו<br>טבע כמקור השראה<br>הצורות, המרקמים, הצבעים והחומרים שאנו עובדים איתם נולדים מתוך התבוננות בעולם הטבע.<br>איכות לפני כמות<br>אנחנו מעדיפים פחות פריטים, שנבחרו נכון, על פני עומס שאינו משרת את החלל.<br>חומר עם אופי<br>עץ, אבן, קרמיקה, בד, זכוכית ומתכת — חומרים שמזדקנים בכבוד ומספרים סיפור לאורך זמן.<br>יופי שימושי<br>אסתטיקה אינה מותרות. היא חלק מהאופן שבו אנו חווים את היומיום.<br>חללים עם נשימה<br>אנחנו מאמינים שחלל טוב אינו צועק. הוא מזמין להישאר.<br>סטודיו 242<br>טבע · אמנות · חלל<br>יופי שנולד מהטבע, הזמן והחומר.</p>
+          <p style="">אנחנו מאמינים שחלל אינו מורכב רק מקירות, רהיטים וחפצים.<br>הוא מורכב מתחושה.<br>מהאור שנכנס בבוקר, מהחומרים שסופגים את הזמן, מהפריטים שבחרנו להשאיר ומהשקט שנוצר ביניהם.<br>סטודיו 242 נולד מתוך אהבה לטבע, לאמנות ולחללים שיש בהם נוכחות רגועה. מתוך ההבנה שלעיתים די בפריט אחד נכון, בתמונה אחת או בחומר אחד אותנטי כדי לשנות את האופן שבו מקום מרגיש.</p>
+          <p style="">אנו אוספים ויוצרים פריטים שנבחרו בקפידה — אמנות צילום מקורית, חפצי עיצוב, קרמיקה, תאורה ואלמנטים טבעיים — כולם חלק מאותה שפה חזותית.<br>אנחנו לא מחפשים למלא חללים.<br>אנחנו מחפשים לחשוף את מה שכבר קיים בהם.<br>ליצור איזון בין טבע לאדריכלות, בין חומר לאור, בין אסתטיקה לחיים עצמם.<br>כל יצירה, כל אובייקט וכל פרויקט נבחרים מתוך אותה מחשבה:<br>ליצור מקומות שנעים לחיות בהם, לעבוד בהם ולהרגיש בהם בבית.</p>
+          <p style="">העקרונות שלנו<br>טבע כמקור השראה<br>הצורות, המרקמים, הצבעים והחומרים שאנו עובדים איתם נולדים מתוך התבוננות בעולם הטבע.<br>איכות לפני כמות<br>אנחנו מעדיפים פחות פריטים, שנבחרו נכון, על פני עומס שאינו משרת את החלל.<br>חומר עם אופי<br>עץ, אבן, קרמיקה, בד, זכוכית ומתכת — חומרים שמזדקנים בכבוד ומספרים סיפור לאורך זמן.<br>יופי שימושי<br>אסתטיקה אינה מותרות. היא חלק מהאופן שבו אנו חווים את היומיום.<br>חללים עם נשימה<br>אנחנו מאמינים שחלל טוב אינו צועק. הוא מזמין להישאר.<br>סטודיו 242<br>טבע · אמנות · חלל<br>יופי שנולד מהטבע, הזמן והחומר.</p>
         </div>
 
         <!-- Image with olive backplate -->
@@ -1233,8 +1300,8 @@
 
     <!-- Bottom Bar -->
     <div class="footer-bottom">
-      <p class="footer-copy" >© 2020 אופיר מסיקה - סטודיו 242. כל הזכויות שמורות.</p>
-      <div class="footer-legal" >
+      <p class="footer-copy" style="">© 2020 אופיר מסיקה - סטודיו 242. כל הזכויות שמורות.</p>
+      <div class="footer-legal" style="">
         <a href="/privacy">מדיניות פרטיות</a>
         <span class="footer-legal-sep"></span>
         <a href="/terms">תנאי שימוש</a><span class="separator">|</span>
