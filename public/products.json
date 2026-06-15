@@ -1,16 +1,16 @@
 {
   "@context": "https://schema.org",
-  "generated_at": "2026-06-15T07:17:11.666Z",
+  "generated_at": "2026-06-15T07:26:35.579Z",
   "base_url": "https://ofir-masika-studio-242.zappy5.app",
   "currency": "ILS",
   "count": 1,
   "products": [
     {
       "id": "f1930f32-a5fa-4800-9942-9b0976126c33",
-      "slug": "shkt-lbn-st-3-ytsyrvt-knbs-fine-art-r45mho",
+      "slug": "shkt-lbn-st-3-ytsyrvt-knbs-fine-art-x9h8b5",
       "name": "\"שקט לבן\" – סט 3 יצירות קנבס Fine Art",
       "name_translations": {},
-      "description": "<p>הכניסו רוגע, מרחב ונשימה אל חלל המגורים עם סט \"שקט לבן\" – קומפוזיציית טריפטיך (3 תמונות) מעודנת ומדויקת, המשלבת אסתטיקה בוטנית מינימליסטית עם עומק אדריכלי. הסט מודפס בהדפסה מוזיאלית ארכיונית על קנבס אמנים משובח, ונחתם במיסגור \"מסגרת צפה\" (Float Frame) מודרני המעניק ליצירה מראה מרחף ויוקרתי. המוצר מגיע מוכן לחלוטין לתלייה, כולל משלוח מוגן ומבוטח עד פתח הבית.</p><p>מפרט טכני ואפשרויות גודל (לבחירה בתיבת הגלילה באתר)</p><p>אנו מציעים את הסט בשני שילובים פרופורציונליים מדויקים, המתוכננים ליצור זרימה מושלמת על הקיר (כפי שניתן לראות בהדמיות בחללים השונים.</p>",
+      "description": "<p><em>שלושה פריימים. שתיקה אחת גדולה.</em></p><p><br></p><p> \"שקט לבן\" הוא לא סט תמונות — זו החלטה עיצובית שמשנה את האווירה של חדר שלם. קומפוזיציית הטריפטיך נולדה מתוך עיסוק בשאלה מה קורה כשמרחב נושם: כשיש לו מקום לשתוק, להיות, לא לצעוק.</p><p><br></p><p> הבוטניקה המינימליסטית פוגשת כאן אדריכלות של אור ושל רוגע — ויחד הן יוצרות נוכחות שקטה שאי אפשר להתעלם ממנה.</p><p><br></p><p><strong>פרטי היצירה:</strong></p><ul><li>הדפסה מוזיאלית ארכיונית על <strong>קנבס אמנים משובח</strong> — עמידה לאורך שנים, ללא דהייה</li><li>מיסגור <strong>Float Frame</strong> (מסגרת צפה) מודרני — מעניק ליצירה מראה מרחף ויוקרתי</li><li>שני שילובי פרופורציות לבחירה — מתוכננים ליצור <strong>זרימה מושלמת על הקיר</strong></li><li>מגיע <strong>מוכן לתלייה לחלוטין</strong> — ללא צורך בהכנה נוספת</li><li>משלוח מוגן ומבוטח <strong>עד פתח הבית</strong></li></ul><p><em>מתאים במיוחד לסלון, חדר שינה, לובי, קליניקה — כל חלל שמחפש עומק בלי רעש.</em></p>",
       "short_description": "הכניסו רוגע, מרחב ונשימה אל חלל המגורים עם סט \"שקט לבן\" – קומפוזיצייה מעודנת ומדויקת. ",
       "sku": null,
       "brand": null,
@@ -19,15 +19,15 @@
       "sale_price": null,
       "currency": "ILS",
       "images": [
-        "https://ofir-masika-studio-242.zappy5.app/assets/product-1780567693571-g8pxlg.webp"
+        "https://ofir-masika-studio-242.zappy5.app/assets/product-enhanced-1781508315225-twkw9k.webp"
       ],
       "in_stock": true,
       "stock_status": "in_stock",
-      "url": "https://ofir-masika-studio-242.zappy5.app/product/shkt-lbn-st-3-ytsyrvt-knbs-fine-art-r45mho",
+      "url": "https://ofir-masika-studio-242.zappy5.app/product/shkt-lbn-st-3-ytsyrvt-knbs-fine-art-x9h8b5",
       "categories": [
         "שקט לבן"
       ],
-      "updated_at": "2026-06-15T07:16:32.311Z"
+      "updated_at": "2026-06-15T07:26:00.696Z"
     }
   ]
 }
